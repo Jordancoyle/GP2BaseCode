@@ -21,6 +21,14 @@ void initOpenGL()
 
     //Turn on best perspective correction
     glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+
+	GLenum err = glewInit();
+
+	if (GLEW_OK != err)
+	{
+		std::cout << "error:" << glewGetErrorString(err) << std::endl;
+	}
+
 }
 
 //Function to set/reset viewport

@@ -1,6 +1,12 @@
 #include "Common.h"
 #include "Graphics.h"
 
+float verts[] = { 0.0f, 1.0f, 0.0f,
+-1.0f, -1.0f, 0.0f,
+1.0f, -1.0f, 0.0f };
+
+GLuint VBO;
+
 void update()
 {
 }
@@ -31,6 +37,13 @@ void render()
       glVertex3f(  1.0f, -1.0f, 0.0f ); // Bottom Right
     glEnd( );
 
+}
+
+void initScene()
+{
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
 }
 
 int main(int argc, char * arg[])
