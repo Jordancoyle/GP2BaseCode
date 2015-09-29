@@ -6,11 +6,12 @@ list(APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -ftest-coverage -fpro
 
 find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
+find_package(GLEW REQUIRED)
 
 add_executable(GP2BaseCode src/main.cpp src/Graphics.cpp include/Common.h include/Graphics.h)
-include_directories(GP2BaseCode include/ ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
+include_directories(GP2BaseCode include/ ${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR} ${GLEW_INCLUDE_DIRS}) 
 # create the program
-target_link_libraries(GP2BaseCode ${SDL2_LIBRARY} ${OPENGL_LIBRARIES})
+target_link_libraries(GP2BaseCode ${SDL2_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
 
 if (MSVC)
 add_custom_command(TARGET GP2BaseCode  POST_BUILD
