@@ -10,10 +10,6 @@ Vertex verts[] = { { -0.5f, 0.5f, 0.5f, //xyz
 0.0f, 0.0f, 1.0f, 1.0f },
 { 0.5f, 0.5f, 0.5f,
 1.0f, 0.0f, 1.0f, 1.0f },
-{-0.5f, 0.5f, 0.5f,
-1.0f, 0.0f, 1.0f, 1.0f},
-{0.5, -0.5, 0.5,
-0.0f, 1.0f, 1.0f, 1.0f},
 
 //back
 { -0.5f, 0.5f, -0.5f, //xyz
@@ -23,14 +19,37 @@ Vertex verts[] = { { -0.5f, 0.5f, 0.5f, //xyz
 { 0.5f, -0.5f, -0.5f, //xyz
 0.0f, 1.0f, 1.0f, 1.0f },
 { 0.5f, 0.5f, -0.5f,
-1.0f, 0.0f, 1.0f, 1.0f },
-{ -0.5f, 0.5f, -0.5f,
-1.0f, 0.0f, 1.0f, 1.0f },
-{ 0.5, -0.5, -0.5,
-0.0f, 1.0f, 1.0f, 1.0f }
+1.0f, 0.0f, 1.0f, 1.0f }
+};
+
+GLuint indices[] = {
+	//front
+	0,1,2,
+	0,3,2,
+
+	//left
+	4,5,1,
+	4,1,0,
+
+	//right
+	3,7,2,
+	7,6,2,
+
+	//bottom
+	1,5,2,
+	6,2,5,
+
+	//top
+	4,0,7,
+	0,7,3,
+
+	//back
+	4,5,6,
+	4,7,6
 };
 
 GLuint VBO;
+GLuint EBO;
 
 void update()
 {
@@ -50,10 +69,12 @@ void render()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
-	glDrawArrays(GL_TRIANGLES, 0, sizeof(verts) / sizeof(Vertex));
+	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
     //Swith to ModelView
     glMatrixMode( GL_MODELVIEW );
@@ -82,10 +103,15 @@ void initScene()
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 }
 
 void cleanUp()
 {
+	glDeleteBuffers(1, &EBO);
 	glDeleteBuffers(1, &VBO);
 }
 
