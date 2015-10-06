@@ -2,12 +2,32 @@
 #include "Graphics.h"
 #include "Vertex.h"
 
-Vertex verts[] = { { 0.0f, 1.0f, 0.0f, //xyz
+Vertex verts[] = { { -0.5f, 0.5f, 0.5f, //xyz
 1.0f, 0.0f, 0.0f, 1.0f }, //rgba
-{ -1.0f, -1.0f, 0.0f, //xyz
+{ -0.5f, -0.5f, 0.5f, //xyz
 0.0f, 1.0f, 0.0f, 1.0f }, //rgba
-{ 1.0f, -1.0f, 0.0f, //xyz
-0.0f, 0.0f, 1.0f, 1.0f }//rgba
+{ 0.5f, -0.5f, 0.5f, //xyz
+0.0f, 0.0f, 1.0f, 1.0f },
+{ 0.5f, 0.5f, 0.5f,
+1.0f, 0.0f, 1.0f, 1.0f },
+{-0.5f, 0.5f, 0.5f,
+1.0f, 0.0f, 1.0f, 1.0f},
+{0.5, -0.5, 0.5,
+0.0f, 1.0f, 1.0f, 1.0f},
+
+//back
+{ -0.5f, 0.5f, -0.5f, //xyz
+1.0f, 0.0f, 1.0f, 1.0f }, //rgba
+{ -0.5f, -0.5f, -0.5f, //xyz
+1.0f, 1.0f, 0.0f, 1.0f }, //rgba
+{ 0.5f, -0.5f, -0.5f, //xyz
+0.0f, 1.0f, 1.0f, 1.0f },
+{ 0.5f, 0.5f, -0.5f,
+1.0f, 0.0f, 1.0f, 1.0f },
+{ -0.5f, 0.5f, -0.5f,
+1.0f, 0.0f, 1.0f, 1.0f },
+{ 0.5, -0.5, -0.5,
+0.0f, 1.0f, 1.0f, 1.0f }
 };
 
 GLuint VBO;
@@ -45,7 +65,7 @@ void render()
     //on z-zaxis
     //Everyting after this will be drawn at -5.0f on z-axis
     //until reset by glLoadIdentity!
-    glTranslatef( 0.0f, 0.0f, -5.0f );
+    glTranslatef( -5.0f, 0.0f, -5.0f );
 
     //Begin drawing triangles
     glBegin( GL_TRIANGLES );
