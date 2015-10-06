@@ -33,12 +33,14 @@ void render()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glTranslatef(0.0f, 0.0f, -6.0f);
-	glDrawArrays(GL_TRIANGLES, 0, sizeof(verts) / (3 * sizeof(float)));
+	glDrawArrays(GL_TRIANGLES, 0, sizeof(verts) / sizeof(Vertex));
 
     //Swith to ModelView
     glMatrixMode( GL_MODELVIEW );
     //Reset using the Indentity Matrix
     glLoadIdentity( );
+
+	gluLookAt(0.0, 0.0, 6.0, 0.0, 0.0, -1.0f, 0.0, 1.0, 0.0);
     //Do translation, push the next bit of drawing 'back' 5 units
     //on z-zaxis
     //Everyting after this will be drawn at -5.0f on z-axis
