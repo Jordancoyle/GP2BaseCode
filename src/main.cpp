@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Graphics.h"
 #include "Vertex.h"
+#include "Shader.h"
 
 Vertex verts[] = { { -0.5f, 0.5f, 0.5f, //xyz
 1.0f, 0.0f, 0.0f, 1.0f }, //rgba
@@ -50,6 +51,7 @@ GLuint indices[] = {
 
 GLuint VBO;
 GLuint EBO;
+GLuint shaderProgram = 0;
 
 void update()
 {
@@ -76,6 +78,11 @@ void initScene()
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	GLuint vertexShaderProgram = 0;
+	string fsPath = ASSET_PATH + SHADER_PATH + "/simpleFS.glsl";
+	vertexShaderProgram = loadShaderFromFile(fsPath, FRAGMENT_SHADER);
+	checkForCompilerErrors(vertexShaderProgram);
 }
 
 void cleanUp()
