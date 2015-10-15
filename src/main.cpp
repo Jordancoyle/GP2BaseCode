@@ -51,6 +51,7 @@ GLuint indices[] = {
 
 GLuint VBO;
 GLuint EBO;
+GLuint VAO;
 GLuint shaderProgram = 0;
 
 void update()
@@ -67,10 +68,14 @@ void render()
 
 	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
+	glUseProgram(shaderProgram);
 }
 
 void initScene()
 {
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
@@ -79,16 +84,36 @@ void initScene()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+
+
 	GLuint vertexShaderProgram = 0;
-	string fsPath = ASSET_PATH + SHADER_PATH + "/simpleFS.glsl";
-	vertexShaderProgram = loadShaderFromFile(fsPath, FRAGMENT_SHADER);
+	string vsPath = ASSET_PATH + SHADER_PATH + "/simpleVS.glsl";
+	vertexShaderProgram = loadShaderFromFile(vsPath, VERTEX_SHADER);
 	checkForCompilerErrors(vertexShaderProgram);
+
+	GLuint fragmentShaderProgram = 0;
+	string fspath = ASSET_PATH + SHADER_PATH + "/simpleFS.glsl";
+	fragmentShaderProgram = loadShaderFromFile(fspath, FRAGMENT_SHADER);
+	checkForCompilerErrors(fragmentShaderProgram);
+
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShaderProgram);
+	glAttachShader(shaderProgram, fragmentShaderProgram);
+	glLinkProgram(shaderProgram);
+	checkForLinkErrors(shaderProgram);
+
+	glDeleteShader(vertexShaderProgram);
+	glDeleteShader(fragmentShaderProgram);
+
+	glBindAttribLocation(shaderProgram, 0, "vertexPosition");
 }
 
 void cleanUp()
 {
 	glDeleteBuffers(1, &EBO);
 	glDeleteBuffers(1, &VBO);
+
+	glDeleteProgram(shaderProgram);
 }
 
 int main(int argc, char * arg[])
