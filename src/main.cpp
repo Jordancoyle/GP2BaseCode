@@ -65,6 +65,7 @@ void render()
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
     //clear the colour and depth buffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glBindVertexArray(VAO);
 
 	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
@@ -84,7 +85,8 @@ void initScene()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
 
 	GLuint vertexShaderProgram = 0;
 	string vsPath = ASSET_PATH + SHADER_PATH + "/simpleVS.glsl";
@@ -111,6 +113,7 @@ void initScene()
 void cleanUp()
 {
 	glDeleteBuffers(1, &EBO);
+	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 
 	glDeleteProgram(shaderProgram);
