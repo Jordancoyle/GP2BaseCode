@@ -3,24 +3,24 @@
 #include "Vertex.h"
 #include "Shader.h"
 
-Vertex verts[] = { { -0.5f, 0.5f, 0.5f, //xyz
-1.0f, 0.0f, 0.0f, 1.0f }, //rgba
-{ -0.5f, -0.5f, 0.5f, //xyz
-0.0f, 1.0f, 0.0f, 1.0f }, //rgba
-{ 0.5f, -0.5f, 0.5f, //xyz
-0.0f, 0.0f, 1.0f, 1.0f },
-{ 0.5f, 0.5f, 0.5f,
-1.0f, 0.0f, 1.0f, 1.0f },
+Vertex verts[] = { vec3(-0.5f, 0.5f, 0.5f), //xyz
+vec4(1.0f, 0.0f, 0.0f, 1.0f), //rgba
+vec3( -0.5f, -0.5f, 0.5f ), //xyz
+vec4(0.0f, 1.0f, 0.0f, 1.0f ), //rgba
+vec3( 0.5f, -0.5f, 0.5f), //xyz
+vec4(0.0f, 0.0f, 1.0f, 1.0f ),
+vec3( 0.5f, 0.5f, 0.5f),
+vec4(1.0f, 0.0f, 1.0f, 1.0f),
 
 //back
-{ -0.5f, 0.5f, -0.5f, //xyz
-1.0f, 0.0f, 1.0f, 1.0f }, //rgba
-{ -0.5f, -0.5f, -0.5f, //xyz
-1.0f, 1.0f, 0.0f, 1.0f }, //rgba
-{ 0.5f, -0.5f, -0.5f, //xyz
-0.0f, 1.0f, 1.0f, 1.0f },
-{ 0.5f, 0.5f, -0.5f,
-1.0f, 0.0f, 1.0f, 1.0f }
+vec3( -0.5f, 0.5f, -0.5f), //xyz
+vec4(1.0f, 0.0f, 1.0f, 1.0f ), //rgba
+vec3( -0.5f, -0.5f, -0.5f), //xyz
+vec4(1.0f, 1.0f, 0.0f, 1.0f ), //rgba
+vec3( 0.5f, -0.5f, -0.5f), //xyz
+vec4(0.0f, 1.0f, 1.0f, 1.0f ),
+vec3( 0.5f, 0.5f, -0.5f),
+vec4(1.0f, 0.0f, 1.0f, 1.0f )
 };
 
 GLuint indices[] = {
@@ -54,8 +54,17 @@ GLuint EBO;
 GLuint VAO;
 GLuint shaderProgram = 0;
 
+mat4 viewMatrix;
+mat4 projMatrix;
+mat4 worldMatrix;
+mat4 MVPMatrix;
+
 void update()
 {
+	projMatrix = perspective(45.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+	viewMatrix = lookAt(vec3(0.0f, 0.0f, 10.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	worldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f));
+	MVPMatrix = projMatrix * viewMatrix * worldMatrix;
 }
 
 void render()
@@ -65,11 +74,14 @@ void render()
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
     //clear the colour and depth buffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-	glBindVertexArray(VAO);
-
-	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
 	glUseProgram(shaderProgram);
+	glBindVertexArray(VAO);
+
+	GLint MVPLocation = glGetUniformLocation(shaderProgram, "MVP");
+	glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
+
+	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
 }
 
 void initScene()
