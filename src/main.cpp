@@ -133,6 +133,8 @@ void cleanUp()
 
 int main(int argc, char * arg[])
 {
+	
+
     //Controls the game loop
     bool run=true;
     bool pause=false;
@@ -159,6 +161,15 @@ int main(int argc, char * arg[])
                                            );
     // Create an OpenGL context associated with the window.
     SDL_GLContext glcontext = SDL_GL_CreateContext(window);
+
+	glewExperimental = true;
+	GLenum err = glewInit();
+	if (err != GLEW_OK)
+	{
+		std::cout << "GLEW INIT ERROR" << std::endl;
+		std::cout << glewGetErrorString(err) << std::endl;
+		return -1;
+	}
 
     //Initialisation
     //Call our InitOpenGL Function
@@ -191,6 +202,14 @@ int main(int argc, char * arg[])
                 }
 
             }
+
+			/*if (event.type == SDL_KEYDOWN)
+			{
+				switch (event.key.keysym.sys)
+				{
+				case SDLK_UP:
+				}
+			}*/
         }
 
         //update
