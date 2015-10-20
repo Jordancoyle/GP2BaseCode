@@ -232,6 +232,7 @@ int main(int argc, char * arg[])
 	cleanUp();
     SDL_GL_DeleteContext(glcontext);
     SDL_DestroyWindow(window);
+	IMG_Quit();
     SDL_Quit();
 
     return 0;
