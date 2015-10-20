@@ -133,18 +133,24 @@ void cleanUp()
 
 int main(int argc, char * arg[])
 {
-	
 
-    //Controls the game loop
-    bool run=true;
-    bool pause=false;
-    // init everyting - SDL, if it is nonzero we have a problem
-    if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
-    {
-        std::cout << "ERROR SDL_Init " <<SDL_GetError()<< std::endl;
 
-        return -1;
-    }
+	//Controls the game loop
+	bool run = true;
+	bool pause = false;
+	// init everyting - SDL, if it is nonzero we have a problem
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+	{
+		std::cout << "ERROR SDL_Init " << SDL_GetError() << std::endl;
+
+		return -1;
+	}
+
+	int imageInitFlags = IMG_INIT_JPG | IMG_INIT_PNG;
+	int returnInitFlags = IMG_Init(imageInitFlags);
+	if (((returnInitFlags)& (imageInitFlags)) != imageInitFlags){
+		cout << "ERROR SDL_Image Init" << IMG_GetError() << endl;
+	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
