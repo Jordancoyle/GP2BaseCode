@@ -19,5 +19,6 @@ using namespace glm;
 
 const string ASSET_PATH = "assets";
 const string SHADER_PATH = "/shaders";
+const string TEXTURE_PATH = "/textures";
 
 #endif
