@@ -64,6 +64,7 @@ GLuint EBO;
 GLuint VAO;
 GLuint shaderProgram = 0;
 GLuint textureMap;
+GLuint fontTexture;
 
 mat4 viewMatrix;
 mat4 projMatrix;
@@ -86,6 +87,9 @@ void render()
     //clear the colour and depth buffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glUseProgram(shaderProgram);
 	glBindVertexArray(VAO);
 
@@ -93,7 +97,7 @@ void render()
 	GLint texture0Location = glGetUniformLocation(shaderProgram, "texture0");
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureMap);
+	glBindTexture(GL_TEXTURE_2D, fontTexture);
 
 	glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
 	glUniform1i(texture0Location, 0);
@@ -115,6 +119,15 @@ void initScene()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
+	string fontPath = ASSET_PATH + FONT_PATH + "/OratorStd.otf";
+	fontTexture = loadTextureFromFont(fontPath, 18, "Hello World");
+
+	glBindTexture(GL_TEXTURE_2D, fontTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -163,6 +176,7 @@ void initScene()
 void cleanUp()
 {
 	glDeleteTextures(1, &textureMap);
+	glDeleteTextures(1, &fontTexture);
 	glDeleteBuffers(1, &EBO);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
@@ -190,6 +204,11 @@ int main(int argc, char * arg[])
 	if (((returnInitFlags)& (imageInitFlags)) != imageInitFlags){
 		cout << "ERROR SDL_Image Init" << IMG_GetError() << endl;
 	}
+
+	if (TTF_Init() == -1)    {
+		std::cout << "ERROR    TTF_Init: " << TTF_GetError();
+	}
+
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
@@ -272,6 +291,7 @@ int main(int argc, char * arg[])
     SDL_GL_DeleteContext(glcontext);
     SDL_DestroyWindow(window);
 	IMG_Quit();
+	TTF_Quit();
     SDL_Quit();
 
     return 0;
