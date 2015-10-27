@@ -65,9 +65,7 @@ bool loadFBXFromFile(const string& filename, MeshData *meshData)
 	if (lRootNode) {
 		cout << "Root Node " << lRootNode->GetName() << endl;
 		for (int i = 0; i < lRootNode->GetChildCount(); i++)
-		{
 			processNode(lRootNode->GetChild(i), meshData);
-		}
 	}
 
 	lImporter->Destroy();

@@ -4,61 +4,8 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "FileSystem.h"
-
-Vertex verts[] = {
-	//Front
-	{ vec3(-0.5f, 0.5f, 0.5f),
-	vec4(1.0f, 0.0f, 1.0f, 1.0f), vec2(0.0f, 0.0f) },// Top Left
-
-	{ vec3(-0.5f, -0.5f, 0.5f),
-	vec4(1.0f, 1.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f) },// Bottom Left
-
-	{ vec3(0.5f, -0.5f, 0.5f),
-	vec4(0.0f, 1.0f, 1.0f, 1.0f), vec2(1.0f, 1.0f) }, //Bottom Right
-
-	{ vec3(0.5f, 0.5f, 0.5f),
-	vec4(1.0f, 0.0f, 1.0f, 1.0f), vec2(1.0f, 0.0f) },// Top Right
-
-
-	//back
-	{ vec3(-0.5f, 0.5f, -0.5f),
-	vec4(1.0f, 0.0f, 1.0f, 1.0f), vec2(0.0f, 0.0f) },// Top Left
-
-	{ vec3(-0.5f, -0.5f, -0.5f),
-	vec4(1.0f, 1.0f, 0.0f, 1.0f), vec2(0.0f, 1.0f) },// Bottom Left
-
-	{ vec3(0.5f, -0.5f, -0.5f),
-	vec4(0.0f, 1.0f, 1.0f, 1.0f), vec2(1.0f, 1.0f) }, //Bottom Right
-
-	{ vec3(0.5f, 0.5f, -0.5f),
-	vec4(1.0f, 0.0f, 1.0f, 1.0f), vec2(1.0f, 0.0f) },// Top Right
-};
-
-GLuint indices[] = {
-	//front
-	0,1,2,
-	0,3,2,
-
-	//left
-	4,5,1,
-	4,1,0,
-
-	//right
-	3,7,2,
-	7,6,2,
-
-	//bottom
-	1,5,2,
-	6,2,5,
-
-	//top
-	4,0,7,
-	0,7,3,
-
-	//back
-	4,5,6,
-	4,7,6
-};
+#include "Mesh.h"
+#include "FBXLoader.h"
 
 GLuint VBO;
 GLuint EBO;
@@ -70,13 +17,20 @@ GLuint fontTexture;
 mat4 viewMatrix;
 mat4 projMatrix;
 mat4 worldMatrix;
+//mat4 rotMatrix;
 mat4 MVPMatrix;
+
+vec4 ambientMaterialColor(0.3f, 0.3f, 0.3f, 1.0f);
+vec4 ambientLightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+MeshData currentMesh;
 
 void update()
 {
 	projMatrix = perspective(45.0f, 640.0f / 480.0f, 0.1f, 100.0f);
-	viewMatrix = lookAt(vec3(0.0f, 0.0f, 10.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	viewMatrix = lookAt(vec3(0.0f, 0.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	worldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f));
+	//rotMatrix = rotate(20.0f, 0.0f, 1.0f, 0);
 	MVPMatrix = projMatrix * viewMatrix * worldMatrix;
 }
 
@@ -103,12 +57,13 @@ void render()
 	glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVPMatrix));
 	glUniform1i(texture0Location, 0);
 
-	glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(GLuint), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, currentMesh.getNumIndices(),
+		GL_UNSIGNED_INT, 0);
 }
 
 void initScene()
 {
-	//load texture & bind
+	/*load texture & bind
 	string texturePath = ASSET_PATH + TEXTURE_PATH + "/texture.png";
 	textureMap = loadTextureFromFile(texturePath);
 
@@ -129,17 +84,36 @@ void initScene()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	*/
+	
+	GLenum err = glGetError();
+	if (err != GL_NO_ERROR)
+		printf("%d - %s\n", __LINE__, gluErrorString(err));
+	string modelPath = ASSET_PATH + MODELS_PATH + "/utah-teapot.fbx";
+	loadFBXFromFile(modelPath, &currentMesh);
+	printf("Verts:%d Inds:%d\n", currentMesh.vertices.size(), currentMesh.indices.size());
+	err = glGetError();
+	if (err != GL_NO_ERROR)
+		printf("%d - %s\n", __LINE__, gluErrorString(err));
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+	glBufferData(GL_ARRAY_BUFFER, currentMesh.getNumVerts()*sizeof(vec3),
+		&currentMesh.vertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	err = glGetError();
+	if (err != GL_NO_ERROR)
+		printf("%d - %s\n", __LINE__, gluErrorString(err));
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		currentMesh.getNumIndices()*sizeof(int),
+		&currentMesh.indices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
@@ -149,29 +123,43 @@ void initScene()
 
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)((sizeof(vec4) + sizeof(vec3))));
+	err = glGetError();
+	if (err != GL_NO_ERROR)
+		printf("%d - %s\n", __LINE__, gluErrorString(err));
 
 	GLuint vertexShaderProgram = 0;
-	string vsPath = ASSET_PATH + SHADER_PATH + "/textureVS.glsl";
+	string vsPath = ASSET_PATH + SHADER_PATH + "/ambientVS.glsl";
 	vertexShaderProgram = loadShaderFromFile(vsPath, VERTEX_SHADER);
 	checkForCompilerErrors(vertexShaderProgram);
 
 	GLuint fragmentShaderProgram = 0;
-	string fspath = ASSET_PATH + SHADER_PATH + "/textureFS.glsl";
+	string fspath = ASSET_PATH + SHADER_PATH + "/ambientFS.glsl";
 	fragmentShaderProgram = loadShaderFromFile(fspath, FRAGMENT_SHADER);
 	checkForCompilerErrors(fragmentShaderProgram);
 
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShaderProgram);
 	glAttachShader(shaderProgram, fragmentShaderProgram);
+
+	GLuint tempMVP = glGetUniformLocation(shaderProgram, "MVPMatrix");
+
+	GLuint tempAMC = glGetUniformLocation(shaderProgram, "ambientMaterialColour");
+	glUniform4fv(tempAMC, 1, ambientMaterialColor);
+
+	GLuint tempALC = glGetUniformLocation(shaderProgram, "ambientLightColor");
+
+	glBindAttribLocation(shaderProgram, 0, "vertexPosition");
+	glBindAttribLocation(shaderProgram, 1, "vertexColor");
+	glBindAttribLocation(shaderProgram, 2, "vertexTexCoords");
+
 	glLinkProgram(shaderProgram);
 	checkForLinkErrors(shaderProgram);
 
 	glDeleteShader(vertexShaderProgram);
 	glDeleteShader(fragmentShaderProgram);
-
-	glBindAttribLocation(shaderProgram, 0, "vertexPosition");
-	glBindAttribLocation(shaderProgram, 1, "vertexColor");
-	glBindAttribLocation(shaderProgram, 2, "vertexTexCoords");
+	err = glGetError();
+	if (err != GL_NO_ERROR)
+		printf("%d - %s\n", __LINE__, gluErrorString(err));
 }
 
 void cleanUp()
@@ -268,13 +256,14 @@ int main(int argc, char * arg[])
 
             }
 
-			/*if (event.type == SDL_KEYDOWN)
+			if (event.type == SDL_KEYDOWN)
 			{
-				switch (event.key.keysym.sys)
+				switch (event.key.keysym.sym)
 				{
-				case SDLK_UP:
+				case SDLK_RIGHT:
+					//viewMatrix += 
 				}
-			}*/
+			}
         }
 
         //update
