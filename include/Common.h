@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <glm/glm.hpp>
+#include <vector>
 
 using namespace std;
 using namespace glm;
@@ -22,5 +23,6 @@ const string ASSET_PATH = "assets";
 const string SHADER_PATH = "/shaders";
 const string TEXTURE_PATH = "/textures";
 const string FONT_PATH = "/fonts";
+const string MODELS_PATH = "/models";
 
 #endif
