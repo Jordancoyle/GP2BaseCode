@@ -20,15 +20,20 @@ mat4 worldMatrix;
 //mat4 rotMatrix;
 mat4 MVPMatrix;
 
-vec4 ambientMaterialColor(0.3f, 0.3f, 0.3f, 1.0f);
-vec4 ambientLightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+vec4 ambientMaterialColour(0.3f, 0.3f, 0.3f, 1.0f);
+vec4 ambientLightColour(1.0f, 1.0f, 1.0f, 1.0f);
+
+vec4 diffuseMaterialColour(0.5f, 0.3f, 0.3, 1.0f);
+vec4 diffuseLightColour(1.0f, 1.0f, 1.0f, 1.0f);
+
+vec3 lightDirection(0.0f, 0.0f, 1.0f);
 
 MeshData currentMesh;
 
 void update()
 {
 	projMatrix = perspective(45.0f, 640.0f / 480.0f, 0.1f, 100.0f);
-	viewMatrix = lookAt(vec3(0.0f, 0.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+	viewMatrix = lookAt(vec3(0.0f, 0.0f, 10.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 	worldMatrix = translate(mat4(1.0f), vec3(0.0f, 0.0f, 0.0f));
 	//rotMatrix = rotate(20.0f, 0.0f, 1.0f, 0);
 	MVPMatrix = projMatrix * viewMatrix * worldMatrix;
@@ -38,18 +43,36 @@ void render()
 {
     //old imediate mode!
     //Set the clear colour(background)
-    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+    glClearColor( 1.0f, 0.0f, 0.0f, 0.0f );
     //clear the colour and depth buffer
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(shaderProgram);
 	glBindVertexArray(VAO);
 
 	GLint MVPLocation = glGetUniformLocation(shaderProgram, "MVP");
 	GLint texture0Location = glGetUniformLocation(shaderProgram, "texture0");
+
+	GLuint tempDMC = glGetUniformLocation(shaderProgram, "diffuseMaterialColour");
+	glUniform4fv(tempDMC, 1, value_ptr(diffuseMaterialColour));
+
+	GLuint tempDLC = glGetUniformLocation(shaderProgram, "diffuseLightColour");
+	glUniform4fv(tempDLC, 1, value_ptr(diffuseLightColour));
+
+	GLuint tempModel = glGetUniformLocation(shaderProgram, "Model");
+	glUniform4fv(tempModel, 1, value_ptr(worldMatrix));
+
+	GLuint tempAMC = glGetUniformLocation(shaderProgram, "ambientMaterialColour");
+	glUniform4fv(tempAMC, 1, value_ptr(ambientMaterialColour));
+
+	GLuint tempALC = glGetUniformLocation(shaderProgram, "ambientLightColour");
+	glUniform4fv(tempALC, 1, value_ptr(ambientLightColour));
+
+	GLuint tempLD = glGetUniformLocation(shaderProgram, "lightDirection");
+	glUniform3fv(tempLD, 1, value_ptr(lightDirection));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
@@ -118,22 +141,26 @@ void initScene()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec3)));
+	//glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec3)));
 
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)((sizeof(vec4) + sizeof(vec3))));
+	//glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec4) + sizeof(vec3)));
+
+	//glEnableVertexAttribArray(3);
+	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec4) + sizeof(vec3) + sizeof(vec2)));
+
 	err = glGetError();
 	if (err != GL_NO_ERROR)
 		printf("%d - %s\n", __LINE__, gluErrorString(err));
 
 	GLuint vertexShaderProgram = 0;
-	string vsPath = ASSET_PATH + SHADER_PATH + "/ambientVS.glsl";
+	string vsPath = ASSET_PATH + SHADER_PATH + "/simpleVS.glsl";
 	vertexShaderProgram = loadShaderFromFile(vsPath, VERTEX_SHADER);
 	checkForCompilerErrors(vertexShaderProgram);
 
 	GLuint fragmentShaderProgram = 0;
-	string fspath = ASSET_PATH + SHADER_PATH + "/ambientFS.glsl";
+	string fspath = ASSET_PATH + SHADER_PATH + "/simpleFS.glsl";
 	fragmentShaderProgram = loadShaderFromFile(fspath, FRAGMENT_SHADER);
 	checkForCompilerErrors(fragmentShaderProgram);
 
@@ -141,16 +168,9 @@ void initScene()
 	glAttachShader(shaderProgram, vertexShaderProgram);
 	glAttachShader(shaderProgram, fragmentShaderProgram);
 
-	GLuint tempMVP = glGetUniformLocation(shaderProgram, "MVPMatrix");
-
-	GLuint tempAMC = glGetUniformLocation(shaderProgram, "ambientMaterialColour");
-	glUniform4fv(tempAMC, 1, ambientMaterialColor);
-
-	GLuint tempALC = glGetUniformLocation(shaderProgram, "ambientLightColor");
-
 	glBindAttribLocation(shaderProgram, 0, "vertexPosition");
-	glBindAttribLocation(shaderProgram, 1, "vertexColor");
-	glBindAttribLocation(shaderProgram, 2, "vertexTexCoords");
+	//glBindAttribLocation(shaderProgram, 1, "vertexColor");
+	//glBindAttribLocation(shaderProgram, 2, "vertexTexCoords");
 
 	glLinkProgram(shaderProgram);
 	checkForLinkErrors(shaderProgram);
@@ -261,7 +281,8 @@ int main(int argc, char * arg[])
 				switch (event.key.keysym.sym)
 				{
 				case SDLK_RIGHT:
-					//viewMatrix += 
+					//viewMatrix +=
+					return 1;
 				}
 			}
         }
