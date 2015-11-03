@@ -60,6 +60,9 @@ bool loadFBXFromFile(const string& filename, MeshData *meshData)
 	// Import the contents of the file into the scene.
 	lImporter->Import(lScene);
 
+	FbxGeometryConverter IGeomConverter(lSdkManager);
+	IGeomConverter.Triangulate(lScene, /*replace*/true);
+
 	// Process Nodes
 	FbxNode* lRootNode = lScene->GetRootNode();
 	if (lRootNode) {
