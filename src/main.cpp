@@ -6,7 +6,10 @@
 #include "Mesh.h"
 #include "FBXLoader.h"
 #include "FileSystem.h"
+#include "GameObject.h"
+#include "Cube.h"
 
+shared_ptr<GameObject> gameObject;
 
 //matrices
 mat4 viewMatrix;
@@ -125,63 +128,12 @@ void createFramebuffer()
 void initScene()
 {
 	createFramebuffer();
-	string modelPath = ASSET_PATH + MODEL_PATH + "/utah-teapot.fbx";
-	loadFBXFromFile(modelPath, &currentMesh);
-	//Generate Vertex Array
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	gameObject = shared_ptr<GameObject>(new GameObject);
+	gameObject->createBuffer(cubeVerts, 8, cubeIndices, 36);
 
-	glBufferData(GL_ARRAY_BUFFER, currentMesh.getNumVerts()*sizeof(Vertex), &currentMesh.vertices[0], GL_STATIC_DRAW);
-
-	//create buffer
-	glGenBuffers(1, &EBO);
-	//Make the EBO active
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//Copy Index data to the EBO
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, currentMesh.getNumIndices()*sizeof(int), &currentMesh.indices[0], GL_STATIC_DRAW);
-
-	cout<<" Index Numbers "<<currentMesh.getNumIndices()<<" Vertex Numbers "<<currentMesh.getNumVerts()<<endl;
-
-	//Tell the shader that 0 is the position element
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec3)));
-
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec3) + sizeof(vec4)));
-
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void**)(sizeof(vec3) + sizeof(vec4) + sizeof(vec2)));
-
-	GLuint vertexShaderProgram = 0;
-	string vsPath = ASSET_PATH + SHADER_PATH + "/specularVS.glsl";
-	vertexShaderProgram = loadShaderFromFile(vsPath, VERTEX_SHADER);
-	checkForCompilerErrors(vertexShaderProgram);
-
-	GLuint fragmentShaderProgram = 0;
-	string fsPath = ASSET_PATH + SHADER_PATH + "/specularFS.glsl";
-	fragmentShaderProgram = loadShaderFromFile(fsPath, FRAGMENT_SHADER);
-	checkForCompilerErrors(fragmentShaderProgram);
-
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShaderProgram);
-	glAttachShader(shaderProgram, fragmentShaderProgram);
-
-	//Link attributes
-	glBindAttribLocation(shaderProgram, 0, "vertexPosition");
-	glBindAttribLocation(shaderProgram, 1, "vertexColour");
-	glBindAttribLocation(shaderProgram, 2, "vertexTexCoords");
-	glBindAttribLocation(shaderProgram, 3, "vertexNormal");
-
-	glLinkProgram(shaderProgram);
-	checkForLinkErrors(shaderProgram);
-	//now we can delete the VS & FS Programs
-	glDeleteShader(vertexShaderProgram);
-	glDeleteShader(fragmentShaderProgram);
+	string vsPath = ASSET_PATH + SHADER_PATH + "/simpleVS.glsl";
+	string fsPath = ASSET_PATH + SHADER_PATH + "/simplefS.glsl";
+	gameObject->loadShader(vsPath, fsPath);
 }
 
 void cleanUpFramebuffer()
@@ -209,7 +161,7 @@ void update()
 
 	viewMatrix = lookAt(cameraPosition, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-	MVPMatrix = projMatrix*viewMatrix*worldMatrix;
+	gameObject->update();
 }
 
 void renderScene()
@@ -219,6 +171,8 @@ void renderScene()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//clear the colour and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	GLuint currentShaderProgram = gameObject->getShaderProgram;
 
 	glUseProgram(shaderProgram);
 
