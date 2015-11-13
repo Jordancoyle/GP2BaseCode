@@ -17,7 +17,10 @@ mat4 MVPMatrix;
 GLuint VBO;
 GLuint EBO;
 GLuint VAO;
+GLuint frameVAO;
+GLuint frameVBO;
 GLuint shaderProgram;
+GLuint fullScreenShaderProgram;
 
 MeshData currentMesh;
 
@@ -39,12 +42,70 @@ GLuint FBODepthBuffer;
 GLuint frameBufferObject;
 GLuint fullScreenVAO;
 GLuint fullScreenVBO;
-GLuint fullScreenShaderProgram;
+
+float vertices[] = { -1, -1,
+1, -1,
+-1, 1,
+1, 1
+};
 
 const int FRAME_BUFFER_WIDTH = 640;
 const int FRAME_BUFFER_HEIGHT = 480;
 
+void createFramebuffer()
+{
+	glActiveTexture(GL_TEXTURE0);
+	glGenTextures(1, &FBOTexture);
+	glBindTexture(GL_TEXTURE_2D, FBOTexture);
 
+	glTexParameteri
+		(GL_TEXTURE_2D,
+		GL_TEXTURE_MAG_FILTER,
+		GL_LINEAR);
+	glTexParameteri
+		(GL_TEXTURE_2D,
+		GL_TEXTURE_MIN_FILTER,
+		GL_LINEAR);
+	glTexParameteri
+		(GL_TEXTURE_2D,
+		GL_TEXTURE_WRAP_S,
+		GL_CLAMP_TO_EDGE);
+	glTexParameteri
+		(GL_TEXTURE_2D,
+		GL_TEXTURE_WRAP_T,
+		GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenRenderbuffers(1, &FBODepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, FBODepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glGenFramebuffers(1, &frameBufferObject);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, FBOTexture, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, FBODepthBuffer);
+
+	GLenum err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (err != GL_FRAMEBUFFER_COMPLETE)
+	{
+		cout << "Frame Buffer Issue" << endl;
+	}
+}
+
+void cleanUpFramebuffer()
+{
+	glDeleteProgram(fullScreenShaderProgram);
+	glDeleteBuffers(1, &frameVBO);
+	glDeleteBuffers(1, &FBODepthBuffer);
+	glDeleteFramebuffers(1, &frameBufferObject);
+	glDeleteVertexArrays(1, &frameVAO);
+	glDeleteTextures(1, &FBOTexture); 
+
+}
 
 void initScene()
 {
@@ -66,6 +127,40 @@ void initScene()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, currentMesh.getNumIndices()*sizeof(int), &currentMesh.indices[0], GL_STATIC_DRAW);
 
 	cout << " Index Numbers " << currentMesh.getNumIndices() << " Vertex Numbers " << currentMesh.getNumVerts() << endl;
+
+	createFramebuffer();
+
+	glGenVertexArrays(1, &frameVAO);
+	glBindVertexArray(frameVAO);
+	glGenBuffers(1, &frameVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, frameVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, currentMesh.getNumVerts()*sizeof(vertices), &currentMesh.vertices[0], GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vertices), NULL);
+
+	GLuint fullScreenVSProgram = 0;
+	string fullScreenVsPath = ASSET_PATH + SHADER_PATH + "/simplePostProcessVS.glsl";
+	fullScreenVSProgram = loadShaderFromFile(fullScreenVsPath, VERTEX_SHADER);
+	checkForCompilerErrors(fullScreenVSProgram);
+
+	GLuint fullScreenFSProgram = 0;
+	string fullScreenFsPath = ASSET_PATH + SHADER_PATH + "/simplePostProcessFS.glsl";
+	fullScreenFSProgram = loadShaderFromFile(fullScreenFsPath, FRAGMENT_SHADER);
+	checkForCompilerErrors(fullScreenFSProgram);
+
+	fullScreenShaderProgram = glCreateProgram();
+	glAttachShader(fullScreenShaderProgram, fullScreenVSProgram);
+	glAttachShader(fullScreenShaderProgram, fullScreenFSProgram);
+
+	glBindAttribLocation(fullScreenShaderProgram, 0, "vertexPosition");
+
+	glLinkProgram(fullScreenShaderProgram);
+	checkForLinkErrors(fullScreenShaderProgram);
+
+	glDeleteShader(fullScreenVSProgram);
+	glDeleteShader(fullScreenFSProgram);
 
 	//Tell the shader that 0 is the position element
 	glEnableVertexAttribArray(0);
@@ -114,32 +209,7 @@ void cleanUp()
 	glDeleteBuffers(1, &EBO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-}
-
-void createFramebuffer()
-{
-	glActiveTexture(GL_TEXTURE0);
-	glGenTextures(1, &FBOTexture);
-	glBindTexture(GL_TEXTURE_2D, FBOTexture);
-
-	glTexParameteri
-		(GL_TEXTURE_2D,
-		GL_TEXTURE_MAG_FILTER,
-		GL_LINEAR);
-	glTexParameteri
-		(GL_TEXTURE_2D,
-		GL_TEXTURE_MIN_FILTER,
-		GL_LINEAR);
-	glTexParameteri
-		(GL_TEXTURE_2D,
-		GL_TEXTURE_WRAP_S,
-		GL_CLAMP_TO_EDGE);
-	glTexParameteri
-		(GL_TEXTURE_2D,
-		GL_TEXTURE_WRAP_T,
-		GL_CLAMP_TO_EDGE);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, FRAME_BUFFER_WIDTH, FRAME_BUFFER_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	cleanUpFramebuffer();
 }
 
 void update()
@@ -155,6 +225,13 @@ void update()
 
 void render()
 {
+	
+}
+
+void renderScene()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObject);
+
 	//Set the clear colour(background)
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	//clear the colour and depth buffer
