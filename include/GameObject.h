@@ -18,6 +18,21 @@ public:
 	{
 		return m_shaderProgram;
 	}
+	
+	GLuint getVertexArrayObject()
+	{
+		return m_VAO;
+	}
+
+	int getNumberOfIndices()
+	{
+		return m_NumOfIndices;
+	}
+
+	mat4& getModelMatrix()
+	{
+		return m_ModelMatrix;
+	}
 private:
 	GLuint m_VBO;
 	GLuint m_EBO;

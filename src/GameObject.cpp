@@ -43,6 +43,9 @@ void GameObject::update()
 }
 void GameObject::createBuffer(Vertex *pVerts, int numVerts, int* pIndices, int numIndices)
 {
+	m_NumOfVertices = numVerts;
+	m_NumOfIndices = numIndices;
+
 	glGenVertexArrays(1, &m_VAO);
 	glBindVertexArray(m_VAO);
 	glGenBuffers(1, &m_VBO);
